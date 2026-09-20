@@ -63,7 +63,7 @@ with st.sidebar:
     st.markdown("### ✨ **Tanya Hardy**")
     st.caption("🚀 *Personal AI Assistant*")
     st.markdown("""
-    Halo! Saya **Tanya Hardy**, rekan berpikir digital yang siap membantu menjawab pertanyaan, tugas, pemrograman, hingga diskusi ide kreatif kapan saja.
+    Halo! Saya **Hardy**, rekan berpikir digital yang siap membantu menjawab pertanyaan, tugas, pemrograman, hingga diskusi ide kreatif kapan saja.
     """)
     st.divider()
     if st.button("💬 Obrolan Baru", use_container_width=True):
