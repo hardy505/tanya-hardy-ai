@@ -157,8 +157,8 @@ if prompt:
                 response_container.markdown(full_response)
                 st.session_state.messages.append({"role": "assistant", "content": full_response})
             except Exception as e:
-    response_container.empty()
-    if "429" in str(e):
-        st.warning("⏳ Server sedang sibuk karena terlalu banyak permintaan. Silakan tunggu sekitar 1 menit lalu coba lagi ya!")
-    else:
-        st.error(f"Terjadi kesalahan: {str(e)}")
+                response_container.empty()
+                if "429" in str(e):
+                    st.warning("⏳ Server sedang sibuk karena kuota habis atau terlalu banyak permintaan. Silakan tunggu sebentar lalu coba lagi ya!")
+                else:
+                    st.error(f"Terjadi kesalahan: {str(e)}")
