@@ -41,20 +41,18 @@ else:
         st.markdown("[Dapatkan API Key Gratis](https://aistudio.google.com/)")
 
 with st.sidebar:
-    st.markdown("### ✨ **Tanya Hardy**")
-    st.caption("🚀 *Personal AI Assistant powered by Next-Gen Intelligence*")
+    st.markdown("### 🤖 **Tanya Hardy**")
+    st.caption("Developed by Hardy • AI Assistant")
     st.markdown("""
-    Halo! Saya **Tanya Hardy**, rekan berpikir digital yang siap membantu menjawab rasa penasaranmu, menyelesaikan tugas, hingga brainstorming ide kreatif kapan saja.
+    Selamat datang di **Tanya Hardy**! Ruang eksplorasi digital serba ada untuk kebutuhan akademis, pemrograman, hingga solusi praktis harian.
     
-    **Apa saja yang bisa saya bantu?**
-    * 💡 **Eksplorasi Ide:** Diskusi sains, teknologi, dan wawasan umum.
-    * 💻 **Coding & Logic:** Debugging, bikin fungsi, dan optimasi kode program.
-    * ✍️ **Kepenulisan:** Artikel, draf surat resmi, esai, dan terjemahan.
-    * 📊 **Analisis & Problem Solving:** Bedah masalah teknis secara runut.
+    **Panduan Prompt:**
+    1. Sebutkan konteks masalahmu dengan jelas.
+    2. Butuh kode program? Sebutkan bahasa yang diinginkan.
+    3. Butuh penjelasan singkat? Ketik *"jelaskan secara ringkas"*.
     """)
     st.divider()
-    st.caption("💡 *Tip: Berikan instruksi yang spesifik untuk mendapatkan solusi terbaik.*")
-    if st.button("🗑️ Mulai Sesi Baru", use_container_width=True):
+    if st.button("✨ Halaman Baru", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
 
