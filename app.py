@@ -9,7 +9,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Link Ikon Khusus
+# Link Ikon Profil (SVG anti kotak kosong di HP)
 AVATAR_AI = "https://api.iconify.design/solar:ghost-bold-duotone.svg?color=%238b5cf6"
 AVATAR_USER = "https://api.iconify.design/solar:user-circle-bold-duotone.svg?color=%233b82f6"
 
@@ -60,7 +60,7 @@ else:
 
 with st.sidebar:
     st.markdown("### ✨ **Tanya Hardy**")
-    st.caption("🚀 *Powered by Groq Ultra-Fast AI*")
+    st.caption("*Developed by Hardy • AI Assistant*")
     st.markdown("""
     Halo! Saya **Tanya Hardy**, rekan berpikir digital yang siap membantu menjawab pertanyaan, tugas, pemrograman, hingga diskusi ide kreatif.
     """)
@@ -89,7 +89,7 @@ if not st.session_state.messages:
         if st.button("🚀 Tips jago problem solving coding", use_container_width=True):
             st.session_state.temp_prompt = "Berikan strategi terbaik untuk melatih logika algoritma dan problem solving di programming"
 
-# Tampilkan Riwayat Obrolan
+# Tampilkan riwayat chat sebelumnya
 for msg in st.session_state.messages:
     avatar = AVATAR_USER if msg["role"] == "user" else AVATAR_AI
     with st.chat_message(msg["role"], avatar=avatar):
@@ -116,7 +116,7 @@ if prompt:
             "role": "system",
             "content": (
                 "Nama kamu adalah Tanya Hardy, asisten AI cerdas serba bisa yang dibangun oleh Hardy. "
-                "Gaya bicaramu to-the-point, cerdas, solutif, ramah, dan menggunakan bahasa Indonesia yang sangat natural."
+                "Gaya bicaramu to-the-point, cerdas, solutif, ramah, dan menggunakan bahasa Indonesia yang natural."
             )
         }
 
@@ -124,7 +124,7 @@ if prompt:
             {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
         ]
 
-       with st.chat_message("assistant", avatar=AVATAR_AI):
+        with st.chat_message("assistant", avatar=AVATAR_AI):
             response_container = st.empty()
             response_container.markdown(
                 '<div class="thinking-status">🌀 <i>Tanya Hardy sedang berpikir...</i></div>', 
@@ -132,18 +132,16 @@ if prompt:
             )
             
             try:
-                # Ambil daftar model yang aktif di akun Groq
-                available_models = [m.id for m in client.models.list().data if "whisper" not in m.id]
-                
-                # Prioritaskan model Llama/Mixtral/Gemma yang tersedia
-                pilihan_model = available_models[0]
-                for target in ["llama-3.1-70b-versatile", "llama-3.3-70b-versatile", "mixtral-8x7b-32768", "gemma2-9b-it"]:
-                    if target in available_models:
-                        pilihan_model = target
+                # Deteksi model yang tersedia secara otomatis di akun Groq
+                model_list = [m.id for m in client.models.list().data if "whisper" not in m.id]
+                target_model = model_list[0]
+                for preferred in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama3-70b-8192", "mixtral-8x7b-32768"]:
+                    if preferred in model_list:
+                        target_model = preferred
                         break
 
                 completion = client.chat.completions.create(
-                    model=pilihan_model,
+                    model=target_model,
                     messages=chat_history,
                     stream=True
                 )
@@ -162,12 +160,6 @@ if prompt:
                 
                 response_container.markdown(full_response)
                 st.session_state.messages.append({"role": "assistant", "content": full_response})
-            except Exception as e:
-                response_container.empty()
-                if "429" in str(e):
-                    st.warning("⏳ Batas permintaan sedang penuh. Silakan tunggu beberapa detik lalu coba lagi.")
-                else:
-                    st.error(f"Terjadi kesalahan: {str(e)}")
             except Exception as e:
                 response_container.empty()
                 if "429" in str(e):
