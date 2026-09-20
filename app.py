@@ -35,7 +35,7 @@ api_key = None
 if "GEMINI_API_KEY" in st.secrets:
     api_key = st.secrets["GEMINI_API_KEY"]
 else:
-   with st.sidebar:
+with st.sidebar:
     st.markdown("### 🤖 **Tanya Hardy**")
     st.caption("Developed by Hardy • AI Assistant")
     st.markdown("""
