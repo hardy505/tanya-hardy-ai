@@ -1,5 +1,5 @@
 import streamlit as st
-import google.generativeai as genai
+from groq import Groq
 
 # --- 1. KONFIGURASI HALAMAN ---
 st.set_page_config(
@@ -9,11 +9,11 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Link Ikon Khusus (Tajam & terbaca di semua jenis HP)
-AVATAR_AI = "https://api.iconify.design/solar:magic-stick-3-bold-duotone.svg?color=%238b5cf6"
+# Link Ikon Khusus
+AVATAR_AI = "https://api.iconify.design/solar:ghost-bold-duotone.svg?color=%238b5cf6"
 AVATAR_USER = "https://api.iconify.design/solar:user-circle-bold-duotone.svg?color=%233b82f6"
 
-# --- 2. GAYA TAMPILAN CUSTOM (CSS) & ANIMASI LOADING ---
+# --- 2. CSS & ANIMASI LOADING ---
 st.markdown("""
 <style>
     .hero-title {
@@ -31,7 +31,6 @@ st.markdown("""
         font-size: 0.95rem;
         margin-bottom: 2rem;
     }
-    /* Animasi denyut teks status berpikir */
     @keyframes pulseText {
         0% { opacity: 0.4; }
         50% { opacity: 1; }
@@ -49,21 +48,21 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. PENGATURAN API KEY & SIDEBAR ---
+# --- 3. API KEY & SIDEBAR ---
 api_key = None
-if "GEMINI_API_KEY" in st.secrets:
-    api_key = st.secrets["GEMINI_API_KEY"]
+if "GROQ_API_KEY" in st.secrets:
+    api_key = st.secrets["GROQ_API_KEY"]
 else:
     with st.sidebar:
         st.subheader("⚙️ Pengaturan")
-        api_key = st.text_input("Google Gemini API Key:", type="password")
-        st.markdown("[Dapatkan API Key Gratis](https://aistudio.google.com/)")
+        api_key = st.text_input("Groq API Key:", type="password")
+        st.markdown("[Dapatkan API Key Gratis](https://console.groq.com/)")
 
 with st.sidebar:
     st.markdown("### ✨ **Tanya Hardy**")
-    st.caption("*Developed by Hardy • AI Assistant*")
+    st.caption("🚀 *Powered by Groq Ultra-Fast AI*")
     st.markdown("""
-    Halo! Saya **Hardy**, rekan berpikir digital yang siap membantu menjawab pertanyaan, tugas, pemrograman, hingga diskusi ide kreatif kapan saja.
+    Halo! Saya **Tanya Hardy**, rekan berpikir digital yang siap membantu menjawab pertanyaan, tugas, pemrograman, hingga diskusi ide kreatif.
     """)
     st.divider()
     if st.button("💬 Obrolan Baru", use_container_width=True):
@@ -74,7 +73,6 @@ with st.sidebar:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Tampilan Menu Awal jika Belum Ada Chat
 if not st.session_state.messages:
     st.markdown('<div class="hero-title">✨ Tanya Hardy</div>', unsafe_allow_html=True)
     st.markdown('<div class="hero-sub">Tanyakan apa saja, dari konsep ilmu pengetahuan hingga pembuatan kode program.</div>', unsafe_allow_html=True)
@@ -97,7 +95,7 @@ for msg in st.session_state.messages:
     with st.chat_message(msg["role"], avatar=avatar):
         st.markdown(msg["content"])
 
-# --- 5. PEMROSESAN PESAN PENGGUNA ---
+# --- 5. PEMROSESAN PESAN ---
 prompt = st.chat_input("Ketik pesan atau pertanyaanmu di sini...")
 
 if "temp_prompt" in st.session_state and st.session_state.temp_prompt:
@@ -108,50 +106,49 @@ if prompt:
     if not api_key:
         st.error("API Key belum disetel. Masukkan API Key di sidebar atau pasang di Secrets Streamlit.")
     else:
-        # Tampilkan Pesan Pengguna
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar=AVATAR_USER):
             st.markdown(prompt)
 
-        # Inisialisasi Model Gemini
-        genai.configure(api_key=api_key)
-        system_instruction = (
-            "Nama kamu adalah Tanya Hardy, asisten AI cerdas serba bisa yang dibangun oleh Hardy. "
-            "Gaya bicaramu to-the-point, berwawasan luas, ramah, dan menggunakan bahasa Indonesia yang natural."
-        )
-        model = genai.GenerativeModel(
-            model_name="models/gemini-3.6-flash",
-            system_instruction=system_instruction
-        )
+        client = Groq(api_key=api_key)
 
-        chat_history = []
-        for m in st.session_state.messages[:-1]:
-            role = "user" if m["role"] == "user" else "model"
-            chat_history.append({"role": role, "parts": [m["content"]]})
+        system_message = {
+            "role": "system",
+            "content": (
+                "Nama kamu adalah Tanya Hardy, asisten AI cerdas serba bisa yang dibangun oleh Hardy. "
+                "Gaya bicaramu to-the-point, cerdas, solutif, ramah, dan menggunakan bahasa Indonesia yang sangat natural."
+            )
+        }
 
-        chat_session = model.start_chat(history=chat_history)
+        chat_history = [system_message] + [
+            {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
+        ]
 
-        # Tampilkan Pesan AI dengan Animasi Status Berpikir
         with st.chat_message("assistant", avatar=AVATAR_AI):
             response_container = st.empty()
-            
-            # Animasi saat AI mulai memproses
             response_container.markdown(
                 '<div class="thinking-status">🌀 <i>Tanya Hardy sedang berpikir...</i></div>', 
                 unsafe_allow_html=True
             )
             
             try:
-                response_stream = chat_session.send_message(prompt, stream=True)
+                # Menggunakan model Llama 3.3 70B (sangat pintar dan kuota harian besar)
+                completion = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=chat_history,
+                    stream=True
+                )
+                
                 full_response = ""
                 first_chunk = True
                 
-                for chunk in response_stream:
-                    if chunk.text:
+                for chunk in completion:
+                    content = chunk.choices[0].delta.content
+                    if content:
                         if first_chunk:
                             response_container.empty()
                             first_chunk = False
-                        full_response += chunk.text
+                        full_response += content
                         response_container.markdown(full_response + "▌")
                 
                 response_container.markdown(full_response)
@@ -159,6 +156,6 @@ if prompt:
             except Exception as e:
                 response_container.empty()
                 if "429" in str(e):
-                    st.warning("⏳ Server sedang sibuk karena kuota habis atau terlalu banyak permintaan. Silakan tunggu sebentar lalu coba lagi ya!")
+                    st.warning("⏳ Batas permintaan sedang penuh. Silakan tunggu beberapa detik lalu coba lagi.")
                 else:
                     st.error(f"Terjadi kesalahan: {str(e)}")
