@@ -35,12 +35,7 @@ api_key = None
 if "GEMINI_API_KEY" in st.secrets:
     api_key = st.secrets["GEMINI_API_KEY"]
 else:
-    with st.sidebar:
-        st.subheader("⚙️ Pengaturan")
-        api_key = st.text_input("Google Gemini API Key:", type="password")
-        st.markdown("[Dapatkan API Key Gratis](https://aistudio.google.com/)")
-
-with st.sidebar:
+   with st.sidebar:
     st.markdown("### 🤖 **Tanya Hardy**")
     st.caption("Developed by Hardy • AI Assistant")
     st.markdown("""
@@ -51,9 +46,10 @@ with st.sidebar:
     2. Butuh kode program? Sebutkan bahasa yang diinginkan.
     3. Butuh penjelasan singkat? Ketik *"jelaskan secara ringkas"*.
     """)
-if st.button("💬 Obrolan Baru", use_container_width=True):
-    st.session_state.messages = []
-    st.rerun()
+    st.divider()
+    if st.button("✨ Halaman Baru", use_container_width=True):
+        st.session_state.messages = []
+        st.rerun()
 
 # --- 3. STATE PESAN ---
 if "messages" not in st.session_state:
