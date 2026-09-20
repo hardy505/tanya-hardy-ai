@@ -134,9 +134,10 @@ if prompt:
             try:
                 # Menggunakan model Llama 3.3 70B (sangat pintar dan kuota harian besar)
                 completion = client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
+                    model="llama-3.1-8b-instant",
                     messages=chat_history,
                     stream=True
+                )
                 )
                 
                 full_response = ""
