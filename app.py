@@ -1,5 +1,9 @@
-import streamlit as st
-import google.generativeai as genai
+except Exception as e:
+    response_container.empty()
+    if "429" in str(e):
+        st.warning("⏳ Server sedang sibuk karena terlalu banyak permintaan. Silakan tunggu sekitar 1 menit lalu coba lagi ya!")
+    else:
+        st.error(f"Terjadi kesalahan: {str(e)}")
 
 # --- 1. KONFIGURASI HALAMAN ---
 st.set_page_config(
