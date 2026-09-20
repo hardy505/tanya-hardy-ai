@@ -124,7 +124,7 @@ if prompt:
             {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
         ]
 
-        with st.chat_message("assistant", avatar=AVATAR_AI):
+       with st.chat_message("assistant", avatar=AVATAR_AI):
             response_container = st.empty()
             response_container.markdown(
                 '<div class="thinking-status">🌀 <i>Tanya Hardy sedang berpikir...</i></div>', 
@@ -132,9 +132,18 @@ if prompt:
             )
             
             try:
-                # Menggunakan model Llama 3.3 70B (sangat pintar dan kuota harian besar)
+                # Ambil daftar model yang aktif di akun Groq
+                available_models = [m.id for m in client.models.list().data if "whisper" not in m.id]
+                
+                # Prioritaskan model Llama/Mixtral/Gemma yang tersedia
+                pilihan_model = available_models[0]
+                for target in ["llama-3.1-70b-versatile", "llama-3.3-70b-versatile", "mixtral-8x7b-32768", "gemma2-9b-it"]:
+                    if target in available_models:
+                        pilihan_model = target
+                        break
+
                 completion = client.chat.completions.create(
-                    model="llama-3.1-8b-instant",
+                    model=pilihan_model,
                     messages=chat_history,
                     stream=True
                 )
@@ -153,6 +162,12 @@ if prompt:
                 
                 response_container.markdown(full_response)
                 st.session_state.messages.append({"role": "assistant", "content": full_response})
+            except Exception as e:
+                response_container.empty()
+                if "429" in str(e):
+                    st.warning("⏳ Batas permintaan sedang penuh. Silakan tunggu beberapa detik lalu coba lagi.")
+                else:
+                    st.error(f"Terjadi kesalahan: {str(e)}")
             except Exception as e:
                 response_container.empty()
                 if "429" in str(e):
