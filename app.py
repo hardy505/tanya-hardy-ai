@@ -51,10 +51,9 @@ with st.sidebar:
     2. Butuh kode program? Sebutkan bahasa yang diinginkan.
     3. Butuh penjelasan singkat? Ketik *"jelaskan secara ringkas"*.
     """)
-    st.divider()
-    if st.button("✨ Halaman Baru", use_container_width=True):
-        st.session_state.messages = []
-        st.rerun()
+if st.button("💬 Obrolan Baru", use_container_width=True):
+    st.session_state.messages = []
+    st.rerun()
 
 # --- 3. STATE PESAN ---
 if "messages" not in st.session_state:
