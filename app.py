@@ -138,7 +138,6 @@ if prompt:
                     messages=chat_history,
                     stream=True
                 )
-                )
                 
                 full_response = ""
                 first_chunk = True
