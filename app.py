@@ -42,9 +42,17 @@ else:
 
 with st.sidebar:
     st.markdown("### 🤖 **Tanya Hardy**")
-    st.write("Asisten AI umum untuk tanya jawab, coding, tugas, ringkasan, dan penulisan kreatif.")
+    st.caption("Developed by Hardy • AI Assistant")
+    st.markdown("""
+    Selamat datang di **Tanya Hardy**! Ruang eksplorasi digital serba ada untuk kebutuhan akademis, pemrograman, hingga solusi praktis harian.
+    
+    **Panduan Prompt:**
+    1. Sebutkan konteks masalahmu dengan jelas.
+    2. Butuh kode program? Sebutkan bahasa yang diinginkan.
+    3. Butuh penjelasan singkat? Ketik *"jelaskan secara ringkas"*.
+    """)
     st.divider()
-    if st.button("🗑️ Mulai Obrolan Baru", use_container_width=True):
+    if st.button("💬 Obrolan Baru", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
 
