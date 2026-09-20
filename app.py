@@ -120,7 +120,7 @@ if prompt:
             "Gaya bicaramu to-the-point, berwawasan luas, ramah, dan menggunakan bahasa Indonesia yang natural."
         )
         model = genai.GenerativeModel(
-            model_name="models/gemini-2.0-flash",
+            model_name="models/gemini-3.6-flash",
             system_instruction=system_instruction
         )
 
