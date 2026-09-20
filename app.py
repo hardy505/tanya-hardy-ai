@@ -61,7 +61,7 @@ else:
 
 with st.sidebar:
     st.markdown("### ✨ **Tanya Hardy**")
-    st.caption("🚀 *Personal AI Assistant*")
+    st.caption("*Developed by Hardy • AI Assistant*")
     st.markdown("""
     Halo! Saya **Hardy**, rekan berpikir digital yang siap membantu menjawab pertanyaan, tugas, pemrograman, hingga diskusi ide kreatif kapan saja.
     """)
