@@ -134,16 +134,8 @@ if prompt:
             )
             
             try:
-                # Deteksi model yang tersedia secara otomatis di akun Groq
-                model_list = [m.id for m in client.models.list().data if "whisper" not in m.id]
-                target_model = model_list[0]
-                for preferred in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama3-70b-8192", "mixtral-8x7b-32768"]:
-                    if preferred in model_list:
-                        target_model = preferred
-                        break
-
                 completion = client.chat.completions.create(
-                    model=target_model,
+                    model="llama-3.1-8b-instant",
                     messages=chat_history,
                     stream=True
                 )
