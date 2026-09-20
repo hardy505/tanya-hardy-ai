@@ -134,8 +134,18 @@ if prompt:
             )
             
             try:
+                # Ambil daftar semua model yang aktif di akun Groq milikmu
+                models_data = client.models.list().data
+                daftar_model = [m.id for m in models_data]
+                
+                # Filter model chat yang bukan audio/whisper
+                chat_models = [m for m in daftar_model if "whisper" not in m and "orpheus" not in m]
+                
+                # Gunakan model chat pertama yang resmi tersedia
+                model_terpilih = chat_models[0]
+
                 completion = client.chat.completions.create(
-                    model="llama-3.1-8b-instant",
+                    model=model_terpilih,
                     messages=chat_history,
                     stream=True
                 )
@@ -154,6 +164,15 @@ if prompt:
                 
                 response_container.markdown(full_response)
                 st.session_state.messages.append({"role": "assistant", "content": full_response})
+            except Exception as e:
+                response_container.empty()
+                # Jika masih bermasalah, tampilkan daftar nama model yang valid
+                try:
+                    list_nama = [m.id for m in client.models.list().data]
+                    st.error(f"Error: {str(e)}")
+                    st.info(f"Model yang terdaftar di akunmu: {list_nama}")
+                except Exception:
+                    st.error(f"Terjadi kesalahan: {str(e)}")
             except Exception as e:
                 response_container.empty()
                 if "429" in str(e):
