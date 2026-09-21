@@ -79,12 +79,15 @@ else:
         st.markdown("[Dapatkan API Key Gratis](https://console.groq.com/)")
 
 with st.sidebar:
-    if os.path.exists("✨"):
-        st.image("hardy-profile.png", width=80)
-    st.markdown("### **Tanya Hardy**")
+
+    st.markdown("### ✨ **Tanya Hardy**")
+
     st.caption("*Developed by Hardy • AI Assistant*")
+
     st.markdown("""
+
     Halo! Saya **Hardy**. Mau tanya sesuatu, cari referensi, atau sekadar bertukar pikiran? Yuk, mulai obrolannya!
+
     """)
     st.divider()
     if st.button("💬 Obrolan Baru", use_container_width=True):
