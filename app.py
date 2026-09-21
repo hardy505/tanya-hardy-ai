@@ -10,7 +10,7 @@ st.set_page_config(
 )
 
 # Link Ikon Profil (SVG anti kotak kosong di HP)
-AVATAR_AI = "https://api.iconify.design/solar:ghost-bold-duotone.svg?color=%238b5cf6"
+AVATAR_AI = "hardy-profile.png"
 AVATAR_USER = "https://api.iconify.design/solar:user-circle-bold-duotone.svg?color=%233b82f6"
 
 # --- 2. CSS & ANIMASI LOADING ---
