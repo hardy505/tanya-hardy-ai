@@ -4,7 +4,7 @@ from groq import Groq
 # --- 1. KONFIGURASI HALAMAN ---
 st.set_page_config(
     page_title="Tanya Hardy - AI Assistant",
-    page_icon="✨",
+    page_icon="hardy-profile.png",
     layout="centered",
     initial_sidebar_state="expanded"
 )
