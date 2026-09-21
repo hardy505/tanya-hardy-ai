@@ -1,17 +1,30 @@
+import base64
+import os
 import streamlit as st
 from groq import Groq
 
 # --- 1. KONFIGURASI HALAMAN ---
+PAGE_ICON = "hardy-profile.png" if os.path.exists("hardy-profile.png") else "✨"
+
 st.set_page_config(
     page_title="Tanya Hardy - AI Assistant",
-    page_icon="hardy-profile.png",
+    page_icon=PAGE_ICON,
     layout="centered",
     initial_sidebar_state="expanded"
 )
 
-# Link Ikon Profil (SVG anti kotak kosong di HP)
-AVATAR_AI = "hardy-profile.png"
+# Avatar Profil
+AVATAR_AI = "hardy-profile.png" if os.path.exists("hardy-profile.png") else "https://api.iconify.design/solar:ghost-bold-duotone.svg?color=%238b5cf6"
 AVATAR_USER = "https://api.iconify.design/solar:user-circle-bold-duotone.svg?color=%233b82f6"
+
+# Fungsi pembaca gambar lokal ke Base64 HTML
+def get_image_base64(path):
+    if os.path.exists(path):
+        with open(path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    return None
+
+img_data = get_image_base64("hardy-profile.png")
 
 # --- 2. CSS & ANIMASI LOADING ---
 st.markdown("""
@@ -59,7 +72,9 @@ else:
         st.markdown("[Dapatkan API Key Gratis](https://console.groq.com/)")
 
 with st.sidebar:
-    st.markdown("### ✨ **Tanya Hardy**")
+    if os.path.exists("hardy-profile.png"):
+        st.image("hardy-profile.png", width=70)
+    st.markdown("### **Tanya Hardy**")
     st.caption("*Developed by Hardy • AI Assistant*")
     st.markdown("""
     Halo! Saya **Hardy**. Mau tanya sesuatu, cari referensi, atau sekadar bertukar pikiran? Yuk, mulai obrolannya!
@@ -68,29 +83,26 @@ with st.sidebar:
     if st.button("💬 Obrolan Baru", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
-# Fungsi pembaca gambar lokal ke HTML
-def get_image_base64(path):
-    with open(path, "rb") as img_file:
-        return base64.b64encode(img_file.read()).decode()
-
-img_data = get_image_base64("hardy-profile.png")
 
 # --- 4. SESI DAN RIWAYAT CHAT ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
 if not st.session_state.messages:
-    import base64
+    if img_data:
+        st.markdown(
+            f'''
+            <div class="hero-title" style="display: flex; align-items: center; justify-content: center; gap: 14px;">
+                <img src="data:image/png;base64,{img_data}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid #8b5cf6;" />
+                <span>Tanya Hardy</span>
+            </div>
+            ''',
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown('<div class="hero-title">✨ Tanya Hardy</div>', unsafe_allow_html=True)
 
-st.markdown(
-    f'''
-    <div class="hero-title" style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-        <img src="data:image/jpeg;base64,{img_data}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid #8b5cf6;" />
-        <span>Tanya Hardy</span>
-    </div>
-    ''',
-    unsafe_allow_html=True
-)
+    st.markdown('<div class="hero-sub">Tanyakan apa saja, dari konsep ilmu pengetahuan hingga pembuatan kode program.</div>', unsafe_allow_html=True) 
     
     col1, col2 = st.columns(2)
     with col1:
@@ -133,7 +145,7 @@ if prompt:
                 "Kamu adalah Tanya Hardy, asisten AI cerdas serba bisa buatan Hardy. "
                 "ATURAN UTAMA: Selalu gunakan dan balas dalam BAHASA INDONESIA yang natural, ramah, dan komunikatif, "
                 "bahkan jika pengguna menyapa dengan kata seperti 'hallo', 'hi', atau kata sapaan lainnya. "
-                "Jangan pernah membalas menggunakan bahasa asing (seperti bahasa Jerman) kecuali jika pengguna secara gamblang meminta penerjemahan."
+                "Jangan pernah membalas menggunakan bahasa asing kecuali pengguna secara gamblang meminta penerjemahan."
             )
         }
 
@@ -156,7 +168,6 @@ if prompt:
                         stream=True
                     )
                 except Exception:
-                    # Alternatif cadangan jika Qwen sedang terkena limit per menit
                     completion = client.chat.completions.create(
                         model="openai/gpt-oss-120b",
                         messages=chat_history,
@@ -181,11 +192,5 @@ if prompt:
                 response_container.empty()
                 if "429" in str(e):
                     st.warning("⏳ Server sedang sibuk karena batas permintaan. Silakan tunggu beberapa detik lalu coba lagi.")
-                else:
-                    st.error(f"Terjadi kesalahan: {str(e)}")
-            except Exception as e:
-                response_container.empty()
-                if "429" in str(e):
-                    st.warning("⏳ Batas permintaan sedang penuh. Silakan tunggu beberapa detik lalu coba lagi.")
                 else:
                     st.error(f"Terjadi kesalahan: {str(e)}")
