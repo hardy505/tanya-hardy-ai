@@ -68,6 +68,12 @@ with st.sidebar:
     if st.button("💬 Obrolan Baru", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
+# Fungsi pembaca gambar lokal ke HTML
+def get_image_base64(path):
+    with open(path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+img_data = get_image_base64("hardy-profile.png")
 
 # --- 4. SESI DAN RIWAYAT CHAT ---
 if "messages" not in st.session_state:
@@ -75,13 +81,6 @@ if "messages" not in st.session_state:
 
 if not st.session_state.messages:
     import base64
-
-# Fungsi pembaca gambar lokal ke HTML
-def get_image_base64(path):
-    with open(path, "rb") as img_file:
-        return base64.b64encode(img_file.read()).decode()
-
-img_data = get_image_base64("hardy-profile.png")
 
 st.markdown(
     f'''
