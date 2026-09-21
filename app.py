@@ -79,7 +79,7 @@ else:
         st.markdown("[Dapatkan API Key Gratis](https://console.groq.com/)")
 
 with st.sidebar:
-    if os.path.exists("hardy-profile.png"):
+    if os.path.exists("✨"):
         st.image("hardy-profile.png", width=80)
     st.markdown("### **Tanya Hardy**")
     st.caption("*Developed by Hardy • AI Assistant*")
