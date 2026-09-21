@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # Avatar Profil
-AVATAR_AI = "hardy-profile.png" if os.path.exists("hardy-profile.png") else "https://api.iconify.design/solar:ghost-bold-duotone.svg?color=%238b5cf6"
+AVATAR_AI = "https://api.iconify.design/solar:ghost-bold-duotone.svg?color=%238b5cf6" if os.path.exists("hardy-profile.png") else "https://api.iconify.design/solar:ghost-bold-duotone.svg?color=%238b5cf6"
 AVATAR_USER = "https://api.iconify.design/solar:user-circle-bold-duotone.svg?color=%233b82f6"
 
 # Fungsi pembaca gambar lokal ke Base64 HTML
