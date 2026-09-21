@@ -91,7 +91,6 @@ st.markdown(
     ''',
     unsafe_allow_html=True
 )
-    st.markdown('<div class="hero-sub">Tanyakan apa saja, dari konsep ilmu pengetahuan hingga pembuatan kode program.</div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
