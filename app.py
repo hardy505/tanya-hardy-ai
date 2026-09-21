@@ -29,18 +29,25 @@ img_data = get_image_base64("hardy-profile.png")
 # --- 2. CSS & ANIMASI LOADING ---
 st.markdown("""
 <style>
-    .hero-title {
+    .hero-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 1rem;
+        margin-bottom: 0.3rem;
+    }
+    .hero-title-text {
         font-size: 2.3rem;
         font-weight: 700;
-        text-align: center;
-        margin-bottom: 0.2rem;
         background: linear-gradient(90deg, #3b82f6, #8b5cf6);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        line-height: 1.2;
     }
     .hero-sub {
         text-align: center;
-        color: #94a3b8;
+        color: #64748b;
         font-size: 0.95rem;
         margin-bottom: 2rem;
     }
@@ -73,7 +80,7 @@ else:
 
 with st.sidebar:
     if os.path.exists("hardy-profile.png"):
-        st.image("hardy-profile.png", width=70)
+        st.image("hardy-profile.png", width=80)
     st.markdown("### **Tanya Hardy**")
     st.caption("*Developed by Hardy • AI Assistant*")
     st.markdown("""
@@ -88,22 +95,31 @@ with st.sidebar:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-if not st.session_state.messages:
+# Tampilan halaman awal jika belum ada riwayat chat
+if len(st.session_state.messages) == 0:
     if img_data:
         st.markdown(
             f'''
-            <div class="hero-title" style="display: flex; align-items: center; justify-content: center; gap: 14px;">
+            <div class="hero-container">
                 <img src="data:image/png;base64,{img_data}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid #8b5cf6;" />
-                <span>Tanya Hardy</span>
+                <span class="hero-title-text">Tanya Hardy</span>
             </div>
             ''',
             unsafe_allow_html=True
         )
     else:
-        st.markdown('<div class="hero-title">✨ Tanya Hardy</div>', unsafe_allow_html=True)
+        st.markdown(
+            '''
+            <div class="hero-container">
+                <span style="font-size: 2rem;">✨</span>
+                <span class="hero-title-text">Tanya Hardy</span>
+            </div>
+            ''',
+            unsafe_allow_html=True
+        )
 
-    st.markdown('<div class="hero-sub">Tanyakan apa saja, dari konsep ilmu pengetahuan hingga pembuatan kode program.</div>', unsafe_allow_html=True) 
-    
+    st.markdown('<div class="hero-sub">Tanyakan apa saja, dari konsep ilmu pengetahuan hingga pembuatan kode program.</div>', unsafe_allow_html=True)
+
     col1, col2 = st.columns(2)
     with col1:
         if st.button("💡 Jelaskan cara kerja Machine Learning", use_container_width=True):
@@ -116,13 +132,13 @@ if not st.session_state.messages:
         if st.button("🚀 Tips jago problem solving coding", use_container_width=True):
             st.session_state.temp_prompt = "Berikan strategi terbaik untuk melatih logika algoritma dan problem solving di programming"
 
-# Tampilkan riwayat chat sebelumnya
+# Tampilkan seluruh riwayat pesan jika ada
 for msg in st.session_state.messages:
     avatar = AVATAR_USER if msg["role"] == "user" else AVATAR_AI
     with st.chat_message(msg["role"], avatar=avatar):
         st.markdown(msg["content"])
 
-# --- 5. PEMROSESAN PESAN ---
+# --- 5. INPUT DAN PEMROSESAN PESAN ---
 prompt = st.chat_input("Ketik pesan atau pertanyaanmu di sini...")
 
 if "temp_prompt" in st.session_state and st.session_state.temp_prompt:
@@ -145,10 +161,11 @@ if prompt:
                 "Kamu adalah Tanya Hardy, asisten AI cerdas serba bisa buatan Hardy. "
                 "ATURAN UTAMA: Selalu gunakan dan balas dalam BAHASA INDONESIA yang natural, ramah, dan komunikatif, "
                 "bahkan jika pengguna menyapa dengan kata seperti 'hallo', 'hi', atau kata sapaan lainnya. "
-                "Jangan pernah membalas menggunakan bahasa asing kecuali pengguna secara gamblang meminta penerjemahan."
+                "Jangan pernah membalas menggunakan bahasa asing kecuali jika pengguna secara gamblang meminta penerjemahan."
             )
         }
 
+        # Batasi riwayat chat ke 4 pesan terakhir agar konsumsi token per menit tetap hemat
         chat_history = [system_message] + [
             {"role": m["role"], "content": m["content"]} for m in st.session_state.messages[-4:]
         ]
@@ -156,10 +173,10 @@ if prompt:
         with st.chat_message("assistant", avatar=AVATAR_AI):
             response_container = st.empty()
             response_container.markdown(
-                '<div class="thinking-status">🌀 <i>Tanya Hardy sedang berpikir...</i></div>', 
+                '<div class="thinking-status">🌀 <i>Tanya Hardy sedang berpikir...</i></div>',
                 unsafe_allow_html=True
             )
-            
+
             try:
                 try:
                     completion = client.chat.completions.create(
@@ -173,10 +190,10 @@ if prompt:
                         messages=chat_history,
                         stream=True
                     )
-                
+
                 full_response = ""
                 first_chunk = True
-                
+
                 for chunk in completion:
                     content = chunk.choices[0].delta.content
                     if content:
@@ -185,7 +202,7 @@ if prompt:
                             first_chunk = False
                         full_response += content
                         response_container.markdown(full_response + "▌")
-                
+
                 response_container.markdown(full_response)
                 st.session_state.messages.append({"role": "assistant", "content": full_response})
             except Exception as e:
