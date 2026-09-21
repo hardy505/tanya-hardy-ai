@@ -74,7 +74,24 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 if not st.session_state.messages:
-    st.markdown('<div class="hero-title">✨ Tanya Hardy</div>', unsafe_allow_html=True)
+    import base64
+
+# Fungsi pembaca gambar lokal ke HTML
+def get_image_base64(path):
+    with open(path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+img_data = get_image_base64("hardy-profile.png")
+
+st.markdown(
+    f'''
+    <div class="hero-title" style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+        <img src="data:image/jpeg;base64,{img_data}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid #8b5cf6;" />
+        <span>Tanya Hardy</span>
+    </div>
+    ''',
+    unsafe_allow_html=True
+)
     st.markdown('<div class="hero-sub">Tanyakan apa saja, dari konsep ilmu pengetahuan hingga pembuatan kode program.</div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
