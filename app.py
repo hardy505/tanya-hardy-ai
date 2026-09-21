@@ -123,7 +123,7 @@ if prompt:
         }
 
         chat_history = [system_message] + [
-            {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
+            {"role": m["role"], "content": m["content"]} for m in st.session_state.messages[-4:]
         ]
 
         with st.chat_message("assistant", avatar=AVATAR_AI):
@@ -134,11 +134,19 @@ if prompt:
             )
             
             try:
-                # Kunci langsung ke model teks yang aktif dan mendukung chat
-                completion = client.chat.completions.create(
-                    model="qwen/qwen3.8-27b",
-                    messages=chat_history,
-                    stream=True
+                try:
+                    completion = client.chat.completions.create(
+                        model="qwen/qwen3.8-27b",
+                        messages=chat_history,
+                        stream=True
+                    )
+                except Exception:
+                    # Alternatif cadangan jika Qwen sedang terkena limit per menit
+                    completion = client.chat.completions.create(
+                        model="openai/gpt-oss-120b",
+                        messages=chat_history,
+                        stream=True
+                    )
                 )
                 
                 full_response = ""
