@@ -1,218 +1,138 @@
-import base64
-import os
 import streamlit as st
 from groq import Groq
+from duckduckgo_search import DDGS
 
-# --- 1. KONFIGURASI HALAMAN ---
-PAGE_ICON = "hardy-profile.png" if os.path.exists("hardy-profile.png") else "✨"
+# --- 1. KONFIGURASI TAMPILAN ---
+st.set_page_config(page_title="AI Search Assistant", page_icon="🌐", layout="centered")
 
-st.set_page_config(
-    page_title="Tanya Hardy - AI Assistant",
-    page_icon=PAGE_ICON,
-    layout="centered",
-    initial_sidebar_state="expanded"
-)
+st.title("🌐 Program AI Kelompok 1")
+st.caption("Aplikasi AI dengan integrasi penelusuran web langsung (Real-Time Web Data)")
 
-# Avatar Profil
-AVATAR_AI = "https://api.iconify.design/solar:ghost-bold-duotone.svg?color=%238b5cf6" if os.path.exists("hardy-profile.png") else "https://api.iconify.design/solar:ghost-bold-duotone.svg?color=%238b5cf6"
-AVATAR_USER = "https://api.iconify.design/solar:user-circle-bold-duotone.svg?color=%233b82f6"
-
-# Fungsi pembaca gambar lokal ke Base64 HTML
-def get_image_base64(path):
-    if os.path.exists(path):
-        with open(path, "rb") as img_file:
-            return base64.b64encode(img_file.read()).decode()
-    return None
-
-img_data = get_image_base64("hardy-profile.png")
-
-# --- 2. CSS & ANIMASI LOADING ---
-st.markdown("""
-<style>
-    .hero-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        margin-top: 1rem;
-        margin-bottom: 0.3rem;
-    }
-    .hero-title-text {
-        font-size: 2.3rem;
-        font-weight: 700;
-        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        line-height: 1.2;
-    }
-    .hero-sub {
-        text-align: center;
-        color: #64748b;
-        font-size: 0.95rem;
-        margin-bottom: 2rem;
-    }
-    @keyframes pulseText {
-        0% { opacity: 0.4; }
-        50% { opacity: 1; }
-        100% { opacity: 0.4; }
-    }
-    .thinking-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        color: #8b5cf6;
-        font-weight: 500;
-        font-size: 0.95rem;
-        animation: pulseText 1.4s infinite ease-in-out;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# --- 3. API KEY & SIDEBAR ---
+# --- 2. API KEY GROQ ---
 api_key = None
 if "GROQ_API_KEY" in st.secrets:
     api_key = st.secrets["GROQ_API_KEY"]
 else:
     with st.sidebar:
-        st.subheader("⚙️ Pengaturan")
-        api_key = st.text_input("Groq API Key:", type="password")
+        st.header("⚙️ Pengaturan")
+        api_key = st.text_input("Masukkan Groq API Key:", type="password")
         st.markdown("[Dapatkan API Key Gratis](https://console.groq.com/)")
 
-with st.sidebar:
+# --- 3. INISIALISASI RIWAYAT CHAT ---
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-    st.markdown("### ✨ **Tanya Hardy**")
+# --- 4. FUNGSI PENCARIAN WEB ---
+def cari_data_web(query):
+    # Lewati pencarian jika sapaan pendek agar respon instan
+    if len(query.strip().split()) <= 1 or query.lower() in ["halo", "hallo", "hai", "p", "test"]:
+        return ""
+    try:
+        with DDGS() as ddgs:
+            results = list(ddgs.text(query, max_results=2))
+            if not results:
+                return ""
+            ringkasan = ""
+            for i, r in enumerate(results, 1):
+                snippet = r.get("body", "")[:200]
+                ringkasan += f"\n[Sumber {i}]: {r.get('title', '')} | {snippet}"
+            return ringkasan
+    except Exception:
+        return ""
 
-    st.caption("*Developed by Hardy • AI Assistant*")
-
-    st.markdown("""
-
-    Halo! Saya **Hardy**. Mau tanya sesuatu, cari referensi, atau sekadar bertukar pikiran? Yuk, mulai obrolannya!
-
-    """)
-    st.divider()
-    if st.button("💬 Obrolan Baru", use_container_width=True):
-        st.session_state.messages = []
-        st.rerun()
-
-# --- 4. SESI DAN RIWAYAT CHAT ---
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# Tampilan halaman awal jika belum ada riwayat chat
-if len(st.session_state.messages) == 0:
-    if img_data:
-        st.markdown(
-            f'''
-            <div class="hero-container">
-                <img src="data:image/png;base64,{img_data}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid #8b5cf6;" />
-                <span class="hero-title-text">Tanya Hardy</span>
-            </div>
-            ''',
-            unsafe_allow_html=True
-        )
-    else:
-        st.markdown(
-            '''
-            <div class="hero-container">
-                <span style="font-size: 2rem;">✨</span>
-                <span class="hero-title-text">Tanya Hardy</span>
-            </div>
-            ''',
-            unsafe_allow_html=True
-        )
-
-    st.markdown('<div class="hero-sub">Tanyakan apa saja, dari konsep ilmu pengetahuan hingga pembuatan kode program.</div>', unsafe_allow_html=True)
-
+# --- 5. TAMPILAN AWAL & TOMBOL SARAN ---
+if len(st.session_state.chat_history) == 0:
+    st.markdown('<div style="text-align:center; color:#64748b; margin-bottom:1.5rem;">Konsultasikan gejala kerusakan hardware komputer, laptop, dan komponen PC Anda.</div>', unsafe_allow_html=True)
+    
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("💡 Jelaskan cara kerja Machine Learning", use_container_width=True):
-            st.session_state.temp_prompt = "Jelaskan cara kerja Machine Learning secara sederhana untuk pemula"
-        if st.button("💻 Buatkan fungsi Python membaca file CSV", use_container_width=True):
-            st.session_state.temp_prompt = "Buatkan fungsi Python untuk membaca dan memproses file CSV beserta penjelasannya"
-    with col2:
-        if st.button("✍️ Buatkan draf permohonan izin", use_container_width=True):
-            st.session_state.temp_prompt = "Buatkan contoh draf surat izin resmi tidak masuk kegiatan"
-        if st.button("🚀 Tips jago problem solving coding", use_container_width=True):
-            st.session_state.temp_prompt = "Berikan strategi terbaik untuk melatih logika algoritma dan problem solving di programming"
+        if st.button("🖥️ Layar laptop berkedip saat buka-tutup", use_container_width=True):
+            st.session_state.temp_prompt = "Layar laptop saya sering berkedip dan kadang mati saat engsel dibuka tutup. Apa penyebab hardware-nya dan bagaimana solusinya?"
+            st.rerun()
+            
+        if st.button("🔊 Bunyi bip panjang berulang saat PC nyala", use_container_width=True):
+            st.session_state.temp_prompt = "Komputer PC saya tidak mau menampilkan gambar dan mengeluarkan bunyi beep panjang berulang-ulang saat dinyalakan. Masalahnya di komponen apa?"
+            st.rerun()
 
-# Tampilkan seluruh riwayat pesan jika ada
-for msg in st.session_state.messages:
-    avatar = AVATAR_USER if msg["role"] == "user" else AVATAR_AI
-    with st.chat_message(msg["role"], avatar=avatar):
+    with col2:
+        if st.button("🔥 Laptop cepat panas dan kipas berisik", use_container_width=True):
+            st.session_state.temp_prompt = "Laptop cepat sekali panas, kipas berputar kencang dan berisik lalu sering mati mendadak saat dipakai kerja. Apa diagnosa kerusakannya?"
+            st.rerun()
+            
+        if st.button("⚡ PC mendadak mati sendiri saat beban kerja berat", use_container_width=True):
+            st.session_state.temp_prompt = "PC sering mendadak mati atau restart sendiri saat dipakai render atau game berat. Apakah ada masalah pada PSU atau suhu prosesor?"
+            st.rerun()
+
+# --- 6. TAMPILKAN RIWAYAT PESAN ---
+for msg in st.session_state.chat_history:
+    with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# --- 5. INPUT DAN PEMROSESAN PESAN ---
-prompt = st.chat_input("Ketik pesan atau pertanyaanmu di sini...")
+# --- 7. INPUT CHAT & PENANGANAN TOMBOL ---
+user_prompt = st.chat_input("Tanyakan gejala kerusakan hardware komputer/laptop...")
 
 if "temp_prompt" in st.session_state and st.session_state.temp_prompt:
-    prompt = st.session_state.temp_prompt
+    user_prompt = st.session_state.temp_prompt
     st.session_state.temp_prompt = None
 
-if prompt:
+# --- 8. PEMROSESAN JAWABAN AI ---
+if user_prompt:
     if not api_key:
-        st.error("API Key belum disetel. Masukkan API Key di sidebar atau pasang di Secrets Streamlit.")
+        st.error("Silakan masukkan Groq API Key di sidebar atau Secrets!")
     else:
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user", avatar=AVATAR_USER):
-            st.markdown(prompt)
+        st.session_state.chat_history.append({"role": "user", "content": user_prompt})
+        with st.chat_message("user"):
+            st.markdown(user_prompt)
 
-        client = Groq(api_key=api_key)
+        with st.chat_message("assistant"):
+            status_box = st.status("🔍 Memeriksa referensi...", expanded=False)
+            web_info = cari_data_web(user_prompt)
+            
+            status_box.update(label="⚡ Menganalisis kerusakan...", state="running")
 
-        system_message = {
-            "role": "system",
-            "content": (
-                "Kamu adalah Tanya Hardy, asisten AI cerdas serba bisa buatan Hardy. "
-                "ATURAN UTAMA: Selalu gunakan dan balas dalam BAHASA INDONESIA yang natural, ramah, dan komunikatif, "
-                "bahkan jika pengguna menyapa dengan kata seperti 'hallo', 'hi', atau kata sapaan lainnya. "
-                "Jangan pernah membalas menggunakan bahasa asing kecuali jika pengguna secara gamblang meminta penerjemahan."
+            client = Groq(api_key=api_key)
+
+            system_instruction = (
+                "Kamu adalah asisten teknisi hardware komputer yang ahli, cepat, dan solutif. "
+                "Berikan analisis kemungkinan komponen yang bermasalah dan langkah-langkah pengecekan praktis. "
+                "Jawab langsung to-the-point dalam Bahasa Indonesia yang ramah, rapi, dan mudah dipahami."
             )
-        }
 
-        # Batasi riwayat chat ke 4 pesan terakhir agar konsumsi token per menit tetap hemat
-        chat_history = [system_message] + [
-            {"role": m["role"], "content": m["content"]} for m in st.session_state.messages[-4:]
-        ]
+            prompt_lengkap = user_prompt
+            if web_info:
+                prompt_lengkap = f"Konteks Web Tambahan:\n{web_info}\n\nPertanyaan Kerusakan:\n{user_prompt}"
 
-        with st.chat_message("assistant", avatar=AVATAR_AI):
+            messages = [
+                {"role": "system", "content": system_instruction},
+                {"role": "user", "content": prompt_lengkap}
+            ]
+
             response_container = st.empty()
-            response_container.markdown(
-                '<div class="thinking-status">🌀 <i>Tanya Hardy sedang berpikir...</i></div>',
-                unsafe_allow_html=True
-            )
+            full_text = ""
 
             try:
-                try:
-                    completion = client.chat.completions.create(
+                # Menggunakan max_tokens=800 agar aman dari limit 1000 OTPM
+                completion = client.chat.completions.create(
                     model="qwen/qwen3.8-27b",
                     messages=messages,
-                    max_tokens=800,  # Wajib ditambahkan agar tidak melebihi kuota 1000 OTPM
+                    max_tokens=800,
                     stream=True
                 )
-                    )
-                except Exception:
-                    completion = client.chat.completions.create(
-                        model="openai/gpt-oss-120b",
-                        messages=chat_history,
-                        stream=True
-                    )
 
-                full_response = ""
-                first_chunk = True
+                status_box.update(label="Selesai!", state="complete", expanded=False)
 
                 for chunk in completion:
                     content = chunk.choices[0].delta.content
                     if content:
-                        if first_chunk:
-                            response_container.empty()
-                            first_chunk = False
-                        full_response += content
-                        response_container.markdown(full_response + "▌")
+                        full_text += content
+                        response_container.markdown(full_text + "▌")
 
-                response_container.markdown(full_response)
-                st.session_state.messages.append({"role": "assistant", "content": full_response})
+                response_container.markdown(full_text)
+                st.session_state.chat_history.append({"role": "assistant", "content": full_text})
+
             except Exception as e:
-                response_container.empty()
+                status_box.update(label="Gagal menghasilkan respons", state="error", expanded=False)
                 if "429" in str(e):
-                    st.warning("⏳ Server sedang sibuk karena batas permintaan. Silakan tunggu beberapa detik lalu coba lagi.")
+                    st.warning("⏳ Server sedang sibuk karena batas limit per menit. Silakan tunggu beberapa detik lalu coba lagi.")
                 else:
                     st.error(f"Terjadi kesalahan: {str(e)}")
