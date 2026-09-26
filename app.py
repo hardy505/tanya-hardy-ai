@@ -183,9 +183,11 @@ if prompt:
             try:
                 try:
                     completion = client.chat.completions.create(
-                        model="qwen/qwen3.8-27b",
-                        messages=chat_history,
-                        stream=True
+                    model="qwen/qwen3.8-27b",
+                    messages=messages,
+                    max_tokens=800,  # Wajib ditambahkan agar tidak melebihi kuota 1000 OTPM
+                    stream=True
+                )
                     )
                 except Exception:
                     completion = client.chat.completions.create(
